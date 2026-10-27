@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Director Overview | YYC Job Control</title>
+  <style>
+    :root {
+      --navy: #183153; --blue: #3569c8; --ink: #26364c; --muted: #78869a;
+      --line: #e6ebf1; --canvas: #f7f8fa; --green: #23845b; --amber: #a76b13; --red: #bf4b4b;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: #fff; font: 14px/1.5 "Segoe UI", Arial, sans-serif; }
+    a { color: inherit; }
+    .site-header { background: #fff; border-bottom: 1px solid var(--line); }
+    .header-inner { width: min(1180px, calc(100% - 40px)); min-height: 68px; margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .brand { display: flex; align-items: center; gap: 10px; color: var(--navy); font-size: 16px; font-weight: 700; text-decoration: none; }
+    .brand-mark { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 9px; background: var(--navy); color: #fff; font-size: 12px; }
+    .main-nav { display: flex; align-items: center; gap: 26px; }
+    .main-nav a { padding: 24px 0 22px; color: #68778b; font-size: 13px; text-decoration: none; border-bottom: 2px solid transparent; }
+    .main-nav a:hover, .main-nav a[aria-current="page"] { color: var(--blue); border-bottom-color: var(--blue); }
+    .header-user { display: flex; align-items: center; gap: 9px; color: #53647b; font-size: 12px; }
+    .avatar { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 50%; background: #eaf0fb; color: #4263a0; font-size: 10px; font-weight: 700; }
+    .page { width: min(1180px, calc(100% - 40px)); margin: 0 auto; padding: 35px 0 48px; }
+    .breadcrumb { margin-bottom: 9px; color: #8995a5; font-size: 11px; }
+    .title-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; margin-bottom: 24px; }
+    h1 { margin: 0; color: var(--navy); font-size: 28px; letter-spacing: -.5px; }
+    .subtitle { margin: 5px 0 0; color: var(--muted); font-size: 13px; }
+    .role-tag { padding: 6px 10px; border: 1px solid #dfe7f3; border-radius: 20px; color: #536c98; background: #f6f8fc; font-size: 11px; white-space: nowrap; }
+    .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 25px; }
+    .summary-card { padding: 17px 18px; border: 1px solid var(--line); border-radius: 9px; background: #fff; }
+    .summary-card p { margin: 0; color: var(--muted); font-size: 12px; }
+    .summary-card strong { display: block; margin-top: 5px; color: var(--navy); font-size: 27px; line-height: 1.15; }
+    .summary-card small { display: block; margin-top: 6px; color: #929eae; font-size: 10px; }
+    .section { margin-top: 22px; border: 1px solid var(--line); border-radius: 9px; background: #fff; overflow: hidden; }
+    .section-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 16px 18px; border-bottom: 1px solid var(--line); }
+    h2 { margin: 0; color: var(--navy); font-size: 15px; }
+    .section-head p { margin: 3px 0 0; color: var(--muted); font-size: 11px; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th { padding: 11px 15px; background: #fafbfd; color: #8491a2; font-size: 10px; font-weight: 650; letter-spacing: .45px; text-transform: uppercase; white-space: nowrap; }
+    td { padding: 12px 15px; border-top: 1px solid #edf0f4; color: #58677c; font-size: 11px; vertical-align: middle; }
+    tbody tr[data-details-row] { cursor: pointer; }
+    tbody tr[data-details-row]:hover { background: #f5f8fd; }
+    tbody tr[data-details-row]:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
+    .job { color: #344a67; font-weight: 650; }
+    .subtext { display: block; margin-top: 2px; color: #98a2b0; font-size: 10px; }
+    .progress { min-width: 90px; }
+    .progress-label { display: flex; justify-content: space-between; margin-bottom: 4px; color: #8692a3; font-size: 9px; }
+    .track { height: 5px; border-radius: 8px; background: #edf0f4; }
+    .fill { height: 100%; border-radius: inherit; background: #6386d4; }
+    .fill.done { background: #45a47c; }
+    .pill { display: inline-block; padding: 3px 7px; border-radius: 12px; background: #edf7f1; color: var(--green); font-size: 9px; white-space: nowrap; }
+    .pill.review { background: #edf3ff; color: var(--blue); }
+    .pill.warning { background: #fff5e4; color: var(--amber); }
+    .pill.late { background: #fff0ef; color: var(--red); }
+    dialog { width: min(540px, calc(100% - 32px)); max-height: min(80vh, 640px); padding: 0; border: 1px solid var(--line); border-radius: 12px; color: var(--ink); box-shadow: 0 20px 70px #14243d33; }
+    dialog::backdrop { background: #14243d66; }
+    .dialog-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 20px 22px 15px; border-bottom: 1px solid var(--line); }
+    .dialog-head h2 { font-size: 17px; }
+    .dialog-head p { margin: 4px 0 0; color: var(--muted); font-size: 11px; }
+    .dialog-close { min-height: 30px; padding: 0 10px; }
+    .detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding: 19px 22px 22px; }
+    .detail-item { min-width: 0; padding: 11px 12px; border: 1px solid var(--line); border-radius: 7px; background: #fbfcfe; }
+    .detail-label { display: block; margin-bottom: 4px; color: #8491a2; font-size: 10px; font-weight: 650; text-transform: uppercase; }
+    .detail-value { color: #344a67; font-size: 12px; overflow-wrap: anywhere; }
+    .detail-input { width: 100%; min-height: 34px; padding: 6px 8px; font-size: 12px; }
+    .edit-actions { display: flex; justify-content: flex-end; gap: 8px; padding: 0 22px 18px; }
+    .save-button { border-color: var(--blue); background: var(--blue); color: #fff; }
+    .save-button:hover { border-color: #2857ad; background: #2857ad; color: #fff; }
+    .edit-error { display: none; margin: 0; padding: 0 22px 16px; color: var(--red); font-size: 11px; }
+    .detail-note { margin: 0; padding: 0 22px 20px; color: var(--muted); font-size: 11px; }
+    .activity-tools { display: flex; align-items: center; gap: 8px; }
+    select, input, button { min-height: 32px; padding: 0 9px; border: 1px solid #dfe5ec; border-radius: 6px; background: #fff; color: #526179; font: inherit; font-size: 11px; }
+    input { width: 170px; }
+    button { cursor: pointer; font-weight: 600; }
+    button:hover { border-color: #9eb4d8; background: #f8faff; }
+    .empty { display: none; padding: 22px; color: var(--muted); text-align: center; }
+    .section-foot { padding: 10px 16px; border-top: 1px solid var(--line); color: #8995a5; font-size: 10px; }
+    .site-footer { padding-top: 23px; color: #929eae; font-size: 10px; }
+    @media (max-width: 760px) {
+      .header-inner, .page { width: min(100% - 28px, 1180px); }
+      .header-inner { min-height: 58px; flex-wrap: wrap; padding: 10px 0; }
+      .main-nav { order: 3; width: 100%; gap: 20px; overflow-x: auto; }
+      .main-nav a { padding: 9px 0 7px; }
+      .summary { grid-template-columns: repeat(2, 1fr); gap: 9px; }
+      .page { padding-top: 24px; }
+      .section-head { align-items: flex-start; }
+      .activity-head { flex-direction: column; }
+      .activity-tools { width: 100%; flex-wrap: wrap; }
+      input { flex: 1; min-width: 120px; }
+    }
+    @media (max-width: 430px) {
+      .header-user > span:last-child { display: none; }
+      .title-row { align-items: flex-start; flex-direction: column; }
+      h1 { font-size: 24px; }
+      .activity-tools select { flex: 1; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="#top"><span class="brand-mark">YYC</span> Job Control</a>
+      <nav class="main-nav" aria-label="Main navigation">
+        <a href="#overview" aria-current="page">Overview</a>
+        <a href="#jobs">Job progress</a>
+        <a href="#activity">Team activity</a>
+      </nav>
+      <div class="header-user"><span class="avatar">EL</span><span>Esther Lim · Director</span></div>
+    </div>
+  </header>
+
+  <main class="page" id="top">
+    <section id="overview">
+      <div class="breadcrumb">Home &nbsp;›&nbsp; Director overview</div>
+      <div class="title-row">
+        <div><h1>Director overview</h1><p class="subtitle">Review job progress and recent staff and administrator activity.</p></div>
+        <span class="role-tag">Director oversight and corrections</span>
+      </div>
+      <div class="summary" aria-label="Team summary">
+        <article class="summary-card"><p>Active jobs</p><strong>18</strong><small>+2 compared with last week</small></article>
+        <article class="summary-card"><p>Need attention</p><strong>4</strong><small>2 overdue · 2 due this week</small></article>
+        <article class="summary-card"><p>Staff actions today</p><strong>12</strong><small>Across 6 team members</small></article>
+        <article class="summary-card"><p>Admin reviews pending</p><strong>3</strong><small>Awaiting administrator review</small></article>
+      </div>
+    </section>
+
+    <section class="section" id="jobs">
+      <div class="section-head"><div><h2>Job progress</h2><p>Current work recorded by staff and reviewed by administrators.</p></div></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Job / client</th><th>Current stage</th><th>Progress</th><th>Assigned staff</th><th>Admin review</th><th>Due</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td><span class="job">Northstar Dental Group</span><span class="subtext">JC-2418 · Annual accounts</span></td><td>Reconciliation</td><td class="progress"><div class="progress-label"><span>4 of 6 steps</span><span>67%</span></div><div class="track"><div class="fill" style="width:67%"></div></div></td><td>Olivia Tan<span class="subtext">Staff</span></td><td><span class="pill review">In review</span></td><td>30 Oct 2026</td><td><span class="pill">On track</span></td></tr>
+            <tr><td><span class="job">Greenleaf Holdings</span><span class="subtext">JC-2406 · Corporate tax</span></td><td>Documents</td><td class="progress"><div class="progress-label"><span>2 of 6 steps</span><span>33%</span></div><div class="track"><div class="fill" style="width:33%"></div></div></td><td>Marcus Koh<span class="subtext">Staff</span></td><td><span class="pill review">In review</span></td><td>24 Oct 2026</td><td><span class="pill late">Overdue</span></td></tr>
+            <tr><td><span class="job">YYC Retail Group</span><span class="subtext">JC-2399 · GST filing</span></td><td>Final checks</td><td class="progress"><div class="progress-label"><span>5 of 6 steps</span><span>83%</span></div><div class="track"><div class="fill" style="width:83%"></div></div></td><td>Jia Wen<span class="subtext">Staff</span></td><td><span class="pill">Approved</span></td><td>29 Oct 2026</td><td><span class="pill warning">Due soon</span></td></tr>
+            <tr><td><span class="job">Harbourview Medical</span><span class="subtext">JC-2387 · Annual accounts</span></td><td>Filed</td><td class="progress"><div class="progress-label"><span>6 of 6 steps</span><span>100%</span></div><div class="track"><div class="fill done" style="width:100%"></div></div></td><td>Sofia Lim<span class="subtext">Staff</span></td><td><span class="pill">Approved</span></td><td>27 Oct 2026</td><td><span class="pill">Completed</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="section-foot">Showing 4 of 18 active jobs · sample data</div>
+    </section>
+
+    <section class="section" id="activity">
+      <div class="section-head activity-head">
+        <div><h2>Recent team activity</h2><p>Recent actions recorded for staff and administrators.</p></div>
+        <div class="activity-tools">
+          <label for="role-filter" hidden>Filter activity by role</label>
+          <select id="role-filter"><option value="all">All team activity</option><option value="staff">Staff only</option><option value="admin">Admin only</option></select>
+          <label for="activity-search" hidden>Search activity</label>
+          <input id="activity-search" type="search" placeholder="Search activity">
+          <button id="export-activity" type="button">Export CSV</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Time</th><th>Team member</th><th>Role</th><th>Activity</th><th>Related job</th><th>Result</th></tr></thead>
+          <tbody id="activity-rows">
+            <tr data-role="staff"><td>10:42 AM</td><td>Olivia Tan</td><td>Staff</td><td>Completed reconciliation step<span class="subtext">Updated job checklist</span></td><td>Northstar Dental · JC-2418</td><td><span class="pill">Recorded</span></td></tr>
+            <tr data-role="admin"><td>10:18 AM</td><td>Aaron Lee</td><td>Admin</td><td>Reviewed submitted documents<span class="subtext">Added a review note for the team</span></td><td>Greenleaf Holdings · JC-2406</td><td><span class="pill warning">Follow-up needed</span></td></tr>
+            <tr data-role="staff"><td>9:56 AM</td><td>Jia Wen</td><td>Staff</td><td>Uploaded 3 supporting files<span class="subtext">Client documents added to job record</span></td><td>YYC Retail Group · JC-2399</td><td><span class="pill">Recorded</span></td></tr>
+            <tr data-role="admin"><td>9:31 AM</td><td>Priya Lim</td><td>Admin</td><td>Approved filing checklist<span class="subtext">Review completed and status updated</span></td><td>Harbourview Medical · JC-2387</td><td><span class="pill">Approved</span></td></tr>
+            <tr data-role="staff"><td>9:12 AM</td><td>Marcus Koh</td><td>Staff</td><td>Flagged a missing client document<span class="subtext">Added a note for administrator review</span></td><td>Greenleaf Holdings · JC-2406</td><td><span class="pill warning">Needs review</span></td></tr>
+            <tr data-role="admin"><td>Yesterday, 4:46 PM</td><td>Aaron Lee</td><td>Admin</td><td>Reassigned job reviewer<span class="subtext">Assignment change captured in the audit trail</span></td><td>Northstar Dental · JC-2418</td><td><span class="pill">Recorded</span></td></tr>
+          </tbody>
+        </table>
+        <div class="empty" id="empty-activity">No activity matches your search.</div>
+      </div>
+      <div class="section-foot" id="activity-count" aria-live="polite">Showing 6 actions · sample data</div>
+    </section>
+
+    <footer class="site-footer">YYC Job Control · Director view · Sample data and edits are saved in this browser only</footer>
+  </main>
+
+  <dialog id="detail-dialog" aria-labelledby="detail-title">
+    <div class="dialog-head">
+      <div><h2 id="detail-title">Details</h2><p id="detail-subtitle">Record information</p></div>
+      <button class="dialog-close" id="close-details" type="button">Close</button>
+    </div>
+    <div class="detail-grid" id="detail-content"></div>
+    <p class="edit-error" id="edit-error" role="alert"></p>
+    <div class="edit-actions">
+      <button id="edit-record" type="button">Edit</button>
+      <button id="cancel-edit" type="button" hidden>Cancel</button>
+      <button class="save-button" id="save-record" type="button" hidden>Save</button>
+    </div>
+  </dialog>
+
+  <script>
+    const roleFilter = document.getElementById("role-filter");
+    const search = document.getElementById("activity-search");
+    const rows = [...document.querySelectorAll("#activity-rows tr")];
+    const count = document.getElementById("activity-count");
+    const empty = document.getElementById("empty-activity");
+
+    function filterActivity() {
+      const query = search.value.trim().toLowerCase();
+      let shown = 0;
+      rows.forEach(row => {
+        row.hidden = (roleFilter.value !== "all" && row.dataset.role !== roleFilter.value) ||
+          (query && !row.textContent.toLowerCase().includes(query));
+        if (!row.hidden) shown++;
+      });
+      count.textContent = `Showing ${shown} ${shown === 1 ? "action" : "actions"} · sample data`;
+      empty.style.display = shown ? "none" : "block";
+    }
+    roleFilter.addEventListener("change", filterActivity);
+    search.addEventListener("input", filterActivity);
+
+    const detailDialog = document.getElementById("detail-dialog");
+    const detailTitle = document.getElementById("detail-title");
+    const detailSubtitle = document.getElementById("detail-subtitle");
+    const detailContent = document.getElementById("detail-content");
+    const jobFields = [
+      ["Client", "client"], ["Job ID and service", "jobInfo"], ["Current stage", "stage"],
+      ["Completed steps", "steps"], ["Progress (%)", "percent"], ["Assigned staff", "staff"],
+      ["Staff role", "staffRole"], ["Admin review", "review"], ["Due date", "due"], ["Status", "status"]
+    ];
+    const activityFields = [
+      ["Time", "time"], ["Team member", "member"], ["Role", "role"],
+      ["Activity", "activity"], ["Activity note", "note"], ["Related job", "job"], ["Result", "result"]
+    ];
+    const editButton = document.getElementById("edit-record");
+    const saveButton = document.getElementById("save-record");
+    const cancelButton = document.getElementById("cancel-edit");
+    const editError = document.getElementById("edit-error");
+    const storageKey = "yyc-director-record-edits-v1";
+    let activeRow;
+    let editing = false;
+
+    function readRecord(row) {
+      if (row.closest("#activity-rows")) {
+        return {
+          time: row.cells[0].innerText.trim(), member: row.cells[1].innerText.trim(),
+          role: row.cells[2].innerText.trim(), activity: row.cells[3].childNodes[0].textContent.trim(),
+          note: row.cells[3].querySelector(".subtext").innerText.trim(),
+          job: row.cells[4].innerText.trim(), result: row.cells[5].innerText.trim()
+        };
+      }
+      const progress = row.cells[2].querySelector(".progress-label");
+      return {
+        client: row.cells[0].querySelector(".job").innerText.trim(),
+        jobInfo: row.cells[0].querySelector(".subtext").innerText.trim(),
+        stage: row.cells[1].innerText.trim(),
+        steps: progress.children[0].innerText.replace(/ of \d+ steps/, "").trim(),
+        percent: progress.children[1].innerText.replace("%", "").trim(),
+        staff: row.cells[3].childNodes[0].textContent.trim(),
+        staffRole: row.cells[3].querySelector(".subtext").innerText.trim(),
+        review: row.cells[4].innerText.trim(), due: row.cells[5].innerText.trim(),
+        status: row.cells[6].innerText.trim()
+      };
+    }
+
+    function setTextCell(cell, value, className) {
+      cell.replaceChildren();
+      const text = document.createElement("span");
+      if (className) text.className = className;
+      text.textContent = value;
+      cell.append(text);
+    }
+
+    function setPill(cell, value, kind) {
+      cell.replaceChildren();
+      const pill = document.createElement("span");
+      pill.className = "pill";
+      if (kind === "review" && value.toLowerCase().includes("review")) pill.classList.add("review");
+      if (kind === "status" && /overdue|late/i.test(value)) pill.classList.add("late");
+      else if (/due soon|follow-up|needs review|pending/i.test(value)) pill.classList.add("warning");
+      pill.textContent = value;
+      cell.append(pill);
+    }
+
+    function applyRecord(row, record) {
+      if (row.closest("#activity-rows")) {
+        setTextCell(row.cells[0], record.time);
+        setTextCell(row.cells[1], record.member);
+        setTextCell(row.cells[2], record.role);
+        row.cells[3].replaceChildren();
+        const activity = document.createElement("span");
+        const note = document.createElement("span");
+        activity.textContent = record.activity;
+        note.className = "subtext";
+        note.textContent = record.note;
+        row.cells[3].append(activity, note);
+        setTextCell(row.cells[4], record.job);
+        setPill(row.cells[5], record.result);
+        row.dataset.role = record.role.toLowerCase();
+        row.setAttribute("aria-label", `View details: ${record.activity}`);
+        return;
+      }
+      row.cells[0].replaceChildren();
+      const client = document.createElement("span");
+      const jobInfo = document.createElement("span");
+      client.className = "job";
+      jobInfo.className = "subtext";
+      client.textContent = record.client;
+      jobInfo.textContent = record.jobInfo;
+      row.cells[0].append(client, jobInfo);
+      setTextCell(row.cells[1], record.stage);
+      const steps = Number(record.steps);
+      const percent = Math.round(steps / 6 * 100);
+      row.cells[2].replaceChildren();
+      const label = document.createElement("div");
+      const done = document.createElement("span");
+      const value = document.createElement("span");
+      const track = document.createElement("div");
+      const fill = document.createElement("div");
+      label.className = "progress-label";
+      done.textContent = `${record.steps} of 6 steps`;
+      value.textContent = `${percent}%`;
+      track.className = "track";
+      fill.className = percent >= 100 ? "fill done" : "fill";
+      fill.style.width = `${percent}%`;
+      track.append(fill);
+      label.append(done, value);
+      row.cells[2].append(label, track);
+      row.cells[3].replaceChildren();
+      const staff = document.createElement("span");
+      const staffRole = document.createElement("span");
+      staff.textContent = record.staff;
+      staffRole.className = "subtext";
+      staffRole.textContent = record.staffRole;
+      row.cells[3].append(staff, staffRole);
+      setPill(row.cells[4], record.review, "review");
+      setTextCell(row.cells[5], record.due);
+      setPill(row.cells[6], record.status, "status");
+      row.setAttribute("aria-label", `View details: ${record.client}`);
+    }
+
+    function renderDetails(record) {
+      const fields = activeRow.closest("#activity-rows") ? activityFields : jobFields;
+      detailContent.replaceChildren();
+      fields.forEach(([label, key]) => {
+        const item = document.createElement("label");
+        const name = document.createElement("span");
+        item.className = "detail-item";
+        name.className = "detail-label";
+        name.textContent = label;
+        item.append(name);
+        if (editing) {
+          let input;
+          if (key === "role") {
+            input = document.createElement("select");
+            ["Staff", "Admin"].forEach(role => {
+              const option = document.createElement("option");
+              option.value = role;
+              option.textContent = role;
+              input.append(option);
+            });
+            input.value = record[key];
+          } else {
+            input = document.createElement("input");
+            input.value = record[key];
+            input.required = key !== "note";
+          }
+          input.className = "detail-input";
+          input.name = key;
+          if (key === "steps") {
+            input.type = "number";
+            input.min = "0";
+            input.max = "6";
+            input.step = "1";
+          } else if (key === "percent") {
+            input.type = "number";
+            input.min = "0";
+            input.max = "100";
+            input.readOnly = true;
+            input.title = "Automatically calculated from completed steps";
+          }
+          item.append(input);
+        } else {
+          const value = document.createElement("span");
+          value.className = "detail-value";
+          value.textContent = record[key];
+          item.append(value);
+        }
+        detailContent.append(item);
+      });
+    }
+
+    function setEditing(value) {
+      editing = value;
+      editButton.hidden = value;
+      saveButton.hidden = !value;
+      cancelButton.hidden = !value;
+      editError.style.display = "none";
+      renderDetails(readRecord(activeRow));
+    }
+
+    detailContent.addEventListener("input", event => {
+      if (event.target.name !== "steps") return;
+      const steps = Number(event.target.value);
+      const percent = detailContent.querySelector('input[name="percent"]');
+      percent.value = Number.isInteger(steps) && steps >= 0 && steps <= 6
+        ? String(Math.round(steps / 6 * 100))
+        : "";
+    });
+
+    function recordKey(row) {
+      return row.closest("#activity-rows")
+        ? `activity-${rows.indexOf(row)}`
+        : `job-${[...document.querySelectorAll("#jobs tbody tr")].indexOf(row)}`;
+    }
+
+    try {
+      const savedRecords = JSON.parse(localStorage.getItem(storageKey) || "{}");
+      document.querySelectorAll("#jobs tbody tr, #activity-rows tr").forEach(row => {
+        const saved = savedRecords[recordKey(row)];
+        if (saved && typeof saved === "object") applyRecord(row, saved);
+      });
+    } catch (error) {
+      console.error("Could not load saved director edits:", error);
+    }
+
+    function showDetails(row) {
+      activeRow = row;
+      const isActivity = row.closest("#activity-rows") !== null;
+      detailTitle.textContent = isActivity ? row.cells[3].childNodes[0].textContent.trim() : row.cells[0].querySelector(".job").textContent.trim();
+      detailSubtitle.textContent = isActivity ? "Team activity record" : "Job progress record";
+      setEditing(false);
+      detailDialog.showModal();
+    }
+
+    document.querySelectorAll("#jobs tbody tr, #activity-rows tr").forEach(row => {
+      const isActivity = row.closest("#activity-rows") !== null;
+      const title = isActivity
+        ? row.cells[3].childNodes[0].textContent.trim()
+        : row.cells[0].querySelector(".job").textContent.trim();
+      row.dataset.detailsRow = "";
+      row.tabIndex = 0;
+      row.setAttribute("aria-label", `View details: ${title}`);
+      row.addEventListener("click", () => showDetails(row));
+      row.addEventListener("keydown", event => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          showDetails(row);
+        }
+      });
+    });
+
+    document.getElementById("close-details").addEventListener("click", () => detailDialog.close());
+    editButton.addEventListener("click", () => setEditing(true));
+    cancelButton.addEventListener("click", () => setEditing(false));
+    saveButton.addEventListener("click", () => {
+      const inputs = [...detailContent.querySelectorAll("input, select")];
+      const invalid = inputs.find(input => !input.checkValidity());
+      if (invalid) {
+        invalid.reportValidity();
+        return;
+      }
+      const record = Object.fromEntries(inputs.map(input => [input.name, input.value.trim()]));
+      if (!activeRow.closest("#activity-rows") && Number(record.steps) > 6) {
+        editError.textContent = "Completed steps must be between 0 and 6.";
+        editError.style.display = "block";
+        return;
+      }
+      if (!activeRow.closest("#activity-rows") && (!Number.isInteger(Number(record.steps)) || Number(record.steps) < 0)) {
+        editError.textContent = "Completed steps must be a whole number from 0 to 6.";
+        editError.style.display = "block";
+        return;
+      }
+      if (!activeRow.closest("#activity-rows")) record.percent = String(Math.round(Number(record.steps) / 6 * 100));
+      if (activeRow.closest("#activity-rows") && !["Staff", "Admin"].includes(record.role)) {
+        editError.textContent = "Choose Staff or Admin as the activity role.";
+        editError.style.display = "block";
+        return;
+      }
+      try {
+        const stored = JSON.parse(localStorage.getItem(storageKey) || "{}");
+        stored[recordKey(activeRow)] = record;
+        localStorage.setItem(storageKey, JSON.stringify(stored));
+      } catch (error) {
+        console.error("Could not save director edits:", error);
+        editError.textContent = "Could not save changes in this browser. Check browser storage settings and try again.";
+        editError.style.display = "block";
+        return;
+      }
+      applyRecord(activeRow, record);
+      if (activeRow.closest("#activity-rows")) filterActivity();
+      detailTitle.textContent = activeRow.closest("#activity-rows") ? record.activity : record.client;
+      setEditing(false);
+    });
+    detailDialog.addEventListener("click", event => {
+      if (event.target === detailDialog) detailDialog.close();
+    });
+
+    document.getElementById("export-activity").addEventListener("click", () => {
+      const csvRows = [["Time", "Team member", "Role", "Activity", "Related job", "Result"]];
+      rows.filter(row => !row.hidden).forEach(row =>
+        csvRows.push([...row.cells].map(cell => cell.innerText.replace(/\s+/g, " ").trim())));
+      const csv = csvRows.map(row => row.map(value => `"${value.replace(/"/g, '""')}"`).join(",")).join("\r\n");
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+      link.download = "director-team-activity.csv";
+      link.click();
+      URL.revokeObjectURL(link.href);
+    });
+  </script>
+</body>
+</html>
