@@ -507,8 +507,8 @@
                   id="staffId" 
                   name="staffId" 
                   class="form-input" 
-                  placeholder="e.g. MGR-TAX-11 or rachel.ong@yyc.my" 
-                  value="rachel.ong@yyc.my"
+                  placeholder="e.g. chew.waihoor@yyc.my or kim.yap@yyc.my" 
+                  value="chew.waihoor@yyc.my"
                   required 
                   autocomplete="username"
                 />
@@ -534,7 +534,7 @@
                   name="password" 
                   class="form-input password-field" 
                   placeholder="Enter your password" 
-                  value="Rachel@Tax2026"
+                  value="Management@2026"
                   required 
                   autocomplete="current-password"
                 />
@@ -576,22 +576,22 @@
           </div>
 
           <div class="demo-buttons-grid">
-            <!-- Manager (Rachel Ong) -->
-            <button type="button" class="demo-role-btn" onclick="selectDemoUser('rachel.ong@yyc.my', 'Rachel Ong', 'Manager · Tax 11')">
+            <!-- Profile 1: COO (Mr. Chew Wai Hoor) -->
+            <button type="button" class="demo-role-btn" onclick="selectDemoUser('chew.waihoor@yyc.my', 'Mr. Chew Wai Hoor', 'COO · Management')">
               <div class="demo-role-name">
-                <span>Rachel Ong</span>
-                <span style="font-size: 10px; color: var(--blue-accent); font-weight: 700;">MANAGER</span>
+                <span>Mr. Chew Wai Hoor</span>
+                <span style="font-size: 10px; color: var(--blue-accent); font-weight: 700;">COO</span>
               </div>
-              <div class="demo-role-desc">Team Board &amp; Intake Queue</div>
+              <div class="demo-role-desc">Chief Operating Officer · All 8 Teams</div>
             </button>
 
-            <!-- Management / COO / Directors -->
-            <button type="button" class="demo-role-btn" onclick="selectDemoUser('director@yyc.my', 'COO / Director', 'Management · All Teams')">
+            <!-- Profile 2: Executive Director (Mr. Kim Yap) -->
+            <button type="button" class="demo-role-btn" onclick="selectDemoUser('kim.yap@yyc.my', 'Mr. Kim Yap', 'Director · Management')">
               <div class="demo-role-name">
-                <span>Executive View</span>
+                <span>Mr. Kim Yap</span>
                 <span style="font-size: 10px; color: #8A4100; font-weight: 700;">DIRECTOR</span>
               </div>
-              <div class="demo-role-desc">All 8 Teams KPI &amp; Ageing</div>
+              <div class="demo-role-desc">Executive Director · SLA &amp; Risk View</div>
             </button>
           </div>
         </div>
@@ -617,7 +617,9 @@
   <footer class="page-footer">
     <div>YYC Corporate Division &copy; 2026 · Audit &amp; Tax Job Control System (Sprint 1 Prototype)</div>
     <div class="footer-links">
-      <a href="YYC%20Job%20Control%20%E2%80%93%20UI%20Prototype%20(Sprint%201).html">Direct Landing Page Link</a>
+      <a href="management-page.html">Management Dashboard</a>
+      <span>·</span>
+      <a href="YYC%20Job%20Control%20%E2%80%93%20UI%20Prototype%20(Sprint%201).html">Full Prototype (Sprint 1)</a>
       <span>·</span>
       <a href="javascript:void(0)" onclick="alert('YYC IT Helpdesk: Contact Mr. Chew Wai Hoor / Mr. Kim Yap')">IT Support</a>
       <span>·</span>
@@ -626,36 +628,54 @@
   </footer>
 
   <script>
-    // Target landing page URL (safely encoded)
-    var LANDING_PAGE_URL = encodeURI("YYC Job Control – UI Prototype (Sprint 1).html");
+    // Target landing page URL (management page)
+    var LANDING_PAGE_URL = "management-page.html";
 
     // Handle form submission and redirect
     function handleLoginSubmit(event) {
       if (event) event.preventDefault();
-      
+
       var staffId = document.getElementById("staffId").value.trim();
       var btn = document.getElementById("loginBtn");
-      
-      btn.classList.add("clicking");
-      btn.innerHTML = '<span>Signing in...</span>';
 
-      // Store in session storage for demo persistence
+      btn.classList.add("clicking");
+      btn.innerHTML = '<span>Signing in to Management...</span>';
+
+      // Store management credentials in session storage
       try {
-        sessionStorage.setItem("yyc_current_user", staffId || "Management User");
+        var lowerId = staffId.toLowerCase();
+        var userName = "Management Executive";
+        var userRole = "Director · Management";
+
+        if (lowerId.includes("chew") || lowerId.includes("coo")) {
+          userName = "Mr. Chew Wai Hoor";
+          userRole = "COO · Management";
+        } else if (lowerId.includes("kim") || lowerId.includes("director")) {
+          userName = "Mr. Kim Yap";
+          userRole = "Director · Management";
+        } else if (staffId) {
+          var namePart = staffId.split("@")[0].replace(/[._-]/g, " ");
+          userName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+          userRole = "Director · Management";
+        }
+
+        sessionStorage.setItem("yyc_current_user", staffId || "chew.waihoor@yyc.my");
+        sessionStorage.setItem("yyc_user_name", userName);
+        sessionStorage.setItem("yyc_user_role", userRole);
       } catch (e) {
         console.warn("Storage not available:", e);
       }
 
-      // Smooth transition to prototype landing page
+      // Direct transition to management page
       setTimeout(function() {
         window.location.href = LANDING_PAGE_URL;
       }, 350);
     }
 
-    // Quick-select demo user helper
+    // Quick-select demo user helper (Management Profiles only)
     function selectDemoUser(email, name, role) {
       document.getElementById("staffId").value = email;
-      var defaultPwd = role.indexOf("Manager") >= 0 ? "Rachel@Tax2026" : "Director@YYC2026";
+      var defaultPwd = "Management@2026";
       var pwdInput = document.getElementById("password");
       pwdInput.value = defaultPwd;
       
@@ -674,9 +694,10 @@
         sessionStorage.setItem("yyc_user_role", role);
       } catch (e) {}
 
+      // Direct access to management page
       setTimeout(function() {
         window.location.href = LANDING_PAGE_URL;
-      }, 400);
+      }, 350);
     }
 
     // Toggle password visibility (hidden by default, click eye to view)

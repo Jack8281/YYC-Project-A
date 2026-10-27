@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YYC Job Control – Management Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: #F4F5F7;
+      color: #16202E;
+      font-size: 14px;
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* Left Sidebar */
+    .sidebar {
+      width: 260px;
+      min-width: 260px;
+      background: #13233A;
+      color: #E8EDF4;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 8px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .brand-logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: #E8EDF4;
+      color: #13233A;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-title {
+      font-weight: 600;
+      font-size: 15px;
+      line-height: 1.2;
+    }
+
+    .brand-sub {
+      font-size: 12px;
+      color: #A9B6C8;
+    }
+
+    .view-as-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #1E3452;
+      border: 1px solid #2B3D57;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #E8EDF4;
+    }
+
+    .nav-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .nav-label {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #A9B6C8;
+      padding: 0 10px 4px;
+    }
+
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 44px;
+      padding: 0 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: left;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      background: transparent;
+      color: #C9D3E0;
+      transition: all 0.15s ease;
+      text-decoration: none;
+    }
+
+    .nav-btn:hover {
+      background: rgba(255, 255, 255, 0.06);
+      color: #FFFFFF;
+    }
+
+    .nav-btn.active {
+      background: #2B3D57;
+      color: #FFFFFF;
+      font-weight: 600;
+    }
+
+    .nav-badge {
+      min-width: 22px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: #D9822B;
+      color: #13233A;
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .sidebar-bottom {
+      margin-top: auto;
+      padding-top: 16px;
+      border-top: 1px solid #2B3D57;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .user-profile {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 0 8px;
+    }
+
+    .user-name {
+      font-weight: 600;
+      color: #FFFFFF;
+      font-size: 14px;
+    }
+
+    .user-role {
+      font-size: 12px;
+      color: #A9B6C8;
+    }
+
+    .sidebar-footer-note {
+      font-size: 11px;
+      color: #A9B6C8;
+      padding: 0 8px;
+    }
+
+    .signout-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 38px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid #3A4E6B;
+      color: #E8EDF4;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.15s ease;
+      text-decoration: none;
+      width: 100%;
+    }
+
+    .signout-btn:hover {
+      background: #A1261B;
+      border-color: #A1261B;
+      color: #FFFFFF;
+    }
+
+    /* Main Content Area */
+    .main-content {
+      flex: 1;
+      padding: 28px 36px 48px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Toast */
+    .toast-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 18px;
+      border-radius: 10px;
+      background: #13233A;
+      color: #FFFFFF;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .dismiss-btn {
+      min-height: 30px;
+      padding: 0 12px;
+      border-radius: 6px;
+      border: 1px solid #4A5E7B;
+      background: transparent;
+      color: #FFFFFF;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 12px;
+    }
+
+    .dismiss-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Header Bar */
+    .content-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .header-titles h1 {
+      margin: 0;
+      font-size: 26px;
+      font-weight: 600;
+      color: #16202E;
+    }
+
+    .header-titles p {
+      margin: 4px 0 0;
+      color: #4A5668;
+      font-size: 14px;
+    }
+
+    .btn-secondary {
+      min-height: 40px;
+      padding: 0 16px;
+      border-radius: 8px;
+      border: 1px solid #C9D0DA;
+      background: #FFFFFF;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 13px;
+      color: #16202E;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-secondary:hover {
+      background: #F4F5F7;
+      border-color: #A9B6C8;
+    }
+
+    /* KPI Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .kpi-card {
+      background: #FFFFFF;
+      border: 1px solid #E1E5EB;
+      border-radius: 10px;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .kpi-title {
+      font-size: 12px;
+      color: #4A5668;
+      font-weight: 500;
+    }
+
+    .kpi-value {
+      font-size: 28px;
+      font-weight: 600;
+      color: #16202E;
+    }
+
+    .kpi-atrisk { color: #8A4100; font-weight: 600; }
+    .kpi-overdue { color: #A1261B; font-weight: 600; }
+
+    /* Tables */
+    .card-table-wrap {
+      background: #FFFFFF;
+      border: 1px solid #E1E5EB;
+      border-radius: 10px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      min-width: 640px;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    thead tr {
+      font-size: 12px;
+      color: #4A5668;
+      border-bottom: 1px solid #E1E5EB;
+      background: #FAFAFB;
+    }
+
+    th {
+      padding: 12px 18px;
+      font-weight: 600;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid #EEF0F3;
+      transition: background 0.1s ease;
+    }
+
+    tbody tr:hover {
+      background: #FBFBFC;
+    }
+
+    td {
+      padding: 12px 18px;
+      font-size: 14px;
+    }
+
+    .team-name {
+      font-weight: 600;
+      color: #16202E;
+    }
+
+    .progress-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .progress-track {
+      flex: 1 1 auto;
+      height: 8px;
+      border-radius: 4px;
+      background: #EEF0F3;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 8px;
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+
+    .progress-label {
+      width: 44px;
+      text-align: right;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    /* Analysis 2-column Grid */
+    .analysis-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      align-items: stretch;
+    }
+
+    .analysis-card {
+      flex: 1 1 360px;
+      min-width: 0;
+      background: #FFFFFF;
+      border: 1px solid #E1E5EB;
+      border-radius: 10px;
+      padding: 20px 24px;
+    }
+
+    .analysis-card h2 {
+      margin: 0 0 4px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #16202E;
+    }
+
+    .analysis-card p {
+      margin: 0 0 16px;
+      font-size: 12px;
+      color: #4A5668;
+    }
+
+    .analysis-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .analysis-row {
+      display: grid;
+      grid-template-columns: 140px minmax(0, 1fr) 32px;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .analysis-label {
+      font-size: 13px;
+      color: #16202E;
+    }
+
+    .analysis-bar-track {
+      height: 16px;
+      border-radius: 4px;
+      background: #EEF0F3;
+      overflow: hidden;
+    }
+
+    .analysis-bar-fill {
+      height: 16px;
+      border-radius: 4px;
+    }
+
+    .analysis-count {
+      font-weight: 600;
+      text-align: right;
+      font-size: 13px;
+      color: #16202E;
+    }
+
+    /* Team Board View (Tax 11 tab) */
+    .board-container {
+      overflow-x: auto;
+      padding-bottom: 6px;
+    }
+
+    .board-columns {
+      display: flex;
+      gap: 12px;
+      min-width: 1450px;
+    }
+
+    .board-col {
+      flex: 1 1 0;
+      min-width: 0;
+      background: #E9ECF1;
+      border-radius: 10px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .col-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 2px 4px;
+      color: #16202E;
+    }
+
+    .job-card {
+      text-align: left;
+      border: 1px solid #DCE1E8;
+      border-radius: 8px;
+      background: #FFFFFF;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      color: #16202E;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    }
+
+    .job-card-id {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      color: #4A5668;
+    }
+
+    .job-card-client {
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+
+    .job-card-meta {
+      font-size: 12px;
+      color: #4A5668;
+    }
+
+    .chip {
+      align-self: flex-start;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .chip-ontrack { background: #E3EDFB; color: #1B4F9C; }
+    .chip-atrisk { background: #FDEBD5; color: #8A4100; }
+    .chip-overdue { background: #FBE1DE; color: #A1261B; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      body { flex-direction: column; }
+      .sidebar { width: 100%; height: auto; position: static; }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Left Sidebar (Follows UI Prototype Theme) -->
+  <aside class="sidebar">
+    <!-- Brand -->
+    <a href="management-page.html" class="brand-wrap">
+      <div class="brand-logo">YYC</div>
+      <div class="brand-text">
+        <span class="brand-title">Job Control</span>
+        <span class="brand-sub">Audit &amp; Tax</span>
+      </div>
+    </a>
+
+    <!-- Viewing Role Badge -->
+    <div class="view-as-badge">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+      </svg>
+      <span>Management Access</span>
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-group">
+      <span class="nav-label">Navigation</span>
+      <button type="button" class="nav-btn active" id="navDash" onclick="switchTab('dash')">
+        <span>Management Dashboard</span>
+      </button>
+      <button type="button" class="nav-btn" id="navTeam" onclick="switchTab('team')">
+        <span>Team Board (Tax 11)</span>
+      </button>
+    </div>
+
+    <!-- User Profile & Sign Out -->
+    <div class="sidebar-bottom">
+      <div class="user-profile">
+        <span class="user-name" id="sidebarUserName">Mr. Chew Wai Hoor</span>
+        <span class="user-role" id="sidebarUserRole">COO / Directors · all teams</span>
+      </div>
+      <div class="sidebar-footer-note">
+        Corporate Division · Today = 11/10/2026
+      </div>
+      <button type="button" class="signout-btn" onclick="handleSignOut()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+        <span>Sign Out</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content Workspace -->
+  <main class="main-content" id="mainContent">
+
+    <!-- Toast Notification -->
+    <div id="toastBox" class="toast-box" style="display: none;">
+      <span id="toastMsg">Ready</span>
+      <button class="dismiss-btn" onclick="hideToast()">Dismiss</button>
+    </div>
+
+    <!-- TAB 1: MANAGEMENT DASHBOARD (Default) -->
+    <div id="tabDashboard" style="display: flex; flex-direction: column; gap: 20px;">
+      
+      <!-- Content Header -->
+      <div class="content-header">
+        <div class="header-titles">
+          <h1>Management Dashboard</h1>
+          <p>All 8 teams. Target: first draft to client within 45 days (audit) or 65 days (tax) of MA received.</p>
+        </div>
+        <button type="button" class="btn-secondary" onclick="exportDataExcel()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Export to Excel
+        </button>
+      </div>
+
+      <!-- 4 KPI Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-title">Active jobs</div>
+          <div class="kpi-value" id="kpiActive">38</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Within target (this year)</div>
+          <div class="kpi-value" id="kpiWithin">79%</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title kpi-atrisk">At risk</div>
+          <div class="kpi-value kpi-atrisk" id="kpiAtRisk">6</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title kpi-overdue">Overdue</div>
+          <div class="kpi-value kpi-overdue" id="kpiOverdue">3</div>
+        </div>
+      </div>
+
+      <!-- Teams Table -->
+      <div class="card-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 20%;">Team</th>
+              <th style="width: 16%;">Active jobs</th>
+              <th style="width: 40%;">Within target</th>
+              <th style="width: 12%;">At risk</th>
+              <th style="width: 12%;">Overdue</th>
+            </tr>
+          </thead>
+          <tbody id="teamsTableBody">
+            <!-- Rendered dynamically by script -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Bottom Analysis Cards (Ageing & Delay Reasons) -->
+      <div class="analysis-grid">
+        <!-- Ageing Card -->
+        <div class="analysis-card">
+          <h2>Ageing of open jobs</h2>
+          <p>Days since MA received, all teams</p>
+          <div class="analysis-rows" id="ageingRows">
+            <!-- Dynamic Ageing rows -->
+          </div>
+        </div>
+
+        <!-- Delay Reasons Card -->
+        <div class="analysis-card">
+          <h2>Top delay reasons</h2>
+          <p>Delays recorded this quarter, all teams</p>
+          <div class="analysis-rows" id="delayRows">
+            <!-- Dynamic Delay rows -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB 2: TEAM BOARD (Tax 11 View) -->
+    <div id="tabTeamBoard" style="display: none; flex-direction: column; gap: 20px;">
+      <div class="content-header">
+        <div class="header-titles">
+          <h1>Team Board · Tax 11</h1>
+          <p>10 active jobs · 1 overdue · 1 at risk · 3 new MA emails waiting</p>
+        </div>
+        <button type="button" class="btn-secondary" onclick="exportDataExcel()">Export to Excel</button>
+      </div>
+
+      <!-- Kanban Columns -->
+      <div class="board-container">
+        <div class="board-columns" id="boardColumns">
+          <!-- Rendered by JavaScript -->
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // ----------------------------------------------------
+    // Prototype Data (Matching Sprint 1 Prototype exactly)
+    // ----------------------------------------------------
+    const OTHER_TEAMS = [
+      { team: 'Audit 1', active: 5, within: 86, overdue: 0, atRisk: 1, ages: [2, 2, 1, 0] },
+      { team: 'Audit 2', active: 4, within: 79, overdue: 1, atRisk: 1, ages: [1, 1, 1, 1] },
+      { team: 'Audit 11', active: 5, within: 81, overdue: 1, atRisk: 0, ages: [2, 1, 1, 1] },
+      { team: 'Audit 12', active: 4, within: 88, overdue: 0, atRisk: 1, ages: [2, 1, 1, 0] },
+      { team: 'Tax 1', active: 5, within: 72, overdue: 1, atRisk: 2, ages: [1, 2, 1, 1] },
+      { team: 'Tax 2', active: 4, within: 76, overdue: 1, atRisk: 1, ages: [1, 1, 1, 1] },
+      { team: 'Tax 11', active: 10, within: 74, overdue: 1, atRisk: 1, ages: [3, 2, 3, 2] },
+      { team: 'Tax 12', active: 3, within: 80, overdue: 0, atRisk: 1, ages: [1, 1, 1, 0] }
+    ];
+
+    const STAGES = [
+      'Preparation', 'Review', 'Amendments', 'Draft to client',
+      'Client review', 'Re-review', 'Finalisation', 'Submission'
+    ];
+
+    const TAX11_JOBS = [
+      { id: 'T-2026-0141', client: 'Seri Mutiara Holdings Sdn Bhd', stage: 0, day: 34, owner: 'Aisyah Rahman', status: 'At risk' },
+      { id: 'T-2026-0148', client: 'Tanjung Murni Foods Sdn Bhd', stage: 0, day: 22, owner: 'Daniel Tan', status: 'On track' },
+      { id: 'T-2026-0150', client: 'Delima Marine Services Sdn Bhd', stage: 0, day: 19, owner: 'Wong Mei Ling', status: 'On track' },
+      { id: 'T-2026-0152', client: 'Bintang Timur Logistics Sdn Bhd', stage: 0, day: 12, owner: 'Aisyah Rahman', status: 'On track' },
+      { id: 'T-2026-0144', client: 'Puncak Jaya Properties Sdn Bhd', stage: 1, day: 38, owner: 'Hafiz Azman', status: 'On track' },
+      { id: 'T-2026-0133', client: 'Sinar Bayu Electrical Sdn Bhd', stage: 1, day: 47, owner: 'Lim Chee Keong', status: 'At risk' },
+      { id: 'T-2026-0137', client: 'Lembah Hijau Plantation Sdn Bhd', stage: 2, day: 68, owner: 'Aisyah Rahman', status: 'Overdue' },
+      { id: 'T-2026-0126', client: 'Permata Ilmu Education Sdn Bhd', stage: 3, day: 70, owner: 'Priya Nair', status: 'Overdue' },
+      { id: 'T-2026-0129', client: 'Cahaya Kraf Industries Sdn Bhd', stage: 4, day: 74, owner: 'Lim Chee Keong', status: 'On track' },
+      { id: 'T-2026-0120', client: 'Kristal Biru Trading Sdn Bhd', stage: 6, day: 92, owner: 'Hafiz Azman', status: 'On track' }
+    ];
+
+    // ----------------------------------------------------
+    // User Authentication Initializer (Safe & Non-blocking)
+    // ----------------------------------------------------
+    function initUser() {
+      // Retrieve session credentials gracefully
+      let userName = sessionStorage.getItem("yyc_user_name");
+      let userRole = sessionStorage.getItem("yyc_user_role");
+      let currentUser = sessionStorage.getItem("yyc_current_user");
+
+      // Default smoothly to Management Profile if not present
+      if (!userName || userName.trim() === "") {
+        userName = "Mr. Chew Wai Hoor";
+        userRole = "COO / Directors · all teams";
+      }
+
+      if (!userRole) {
+        userRole = "COO / Directors · all teams";
+      }
+
+      document.getElementById("sidebarUserName").textContent = userName;
+      document.getElementById("sidebarUserRole").textContent = userRole;
+    }
+
+    // ----------------------------------------------------
+    // Render Dashboard
+    // ----------------------------------------------------
+    function renderDashboard() {
+      // Calculate KPIs
+      let totActive = OTHER_TEAMS.reduce((acc, t) => acc + t.active, 0);
+      let totOverdue = OTHER_TEAMS.reduce((acc, t) => acc + t.overdue, 0);
+      let totAtRisk = OTHER_TEAMS.reduce((acc, t) => acc + t.atRisk, 0);
+      let avgWithin = Math.round(
+        OTHER_TEAMS.reduce((acc, t) => acc + (t.within * t.active), 0) / totActive
+      );
+
+      document.getElementById("kpiActive").textContent = totActive;
+      document.getElementById("kpiWithin").textContent = avgWithin + "%";
+      document.getElementById("kpiAtRisk").textContent = totAtRisk;
+      document.getElementById("kpiOverdue").textContent = totOverdue;
+
+      // Render Teams Table
+      let tableHtml = "";
+      OTHER_TEAMS.forEach(t => {
+        let barColor = t.within >= 80 ? "#1B4F9C" : "#D9822B";
+        tableHtml += `
+          <tr>
+            <td class="team-name">${t.team}</td>
+            <td>${t.active}</td>
+            <td>
+              <div class="progress-bar-wrap">
+                <div class="progress-track">
+                  <div class="progress-fill" style="width: ${t.within}%; background: ${barColor};"></div>
+                </div>
+                <span class="progress-label">${t.within}%</span>
+              </div>
+            </td>
+            <td style="color: #8A4100; font-weight: 600;">${t.atRisk}</td>
+            <td style="color: #A1261B; font-weight: 600;">${t.overdue}</td>
+          </tr>
+        `;
+      });
+      document.getElementById("teamsTableBody").innerHTML = tableHtml;
+
+      // Render Ageing breakdown
+      let buckets = [0, 0, 0, 0];
+      OTHER_TEAMS.forEach(t => {
+        t.ages.forEach((count, i) => { buckets[i] += count; });
+      });
+
+      let maxB = Math.max(...buckets, 1);
+      let ageLabels = ['0–30 days', '31–45 days', '46–65 days', 'Over 65 days'];
+      let ageColors = ['#1B4F9C', '#5B84C4', '#D9822B', '#A1261B'];
+
+      let ageHtml = "";
+      ageLabels.forEach((label, i) => {
+        let pct = Math.round((buckets[i] / maxB) * 100);
+        ageHtml += `
+          <div class="analysis-row">
+            <span class="analysis-label">${label}</span>
+            <div class="analysis-bar-track">
+              <div class="analysis-bar-fill" style="width: ${pct}%; background: ${ageColors[i]};"></div>
+            </div>
+            <span class="analysis-count">${buckets[i]}</span>
+          </div>
+        `;
+      });
+      document.getElementById("ageingRows").innerHTML = ageHtml;
+
+      // Render Delay Reasons
+      let reasons = [
+        { label: 'Waiting for documents', count: 9 },
+        { label: 'Client not responding', count: 7 },
+        { label: 'Workload', count: 5 },
+        { label: 'Technical issue', count: 2 }
+      ];
+
+      let maxR = 9;
+      let delayHtml = "";
+      reasons.forEach(r => {
+        let pct = Math.round((r.count / maxR) * 100);
+        delayHtml += `
+          <div class="analysis-row">
+            <span class="analysis-label" style="font-size: 13px;">${r.label}</span>
+            <div class="analysis-bar-track">
+              <div class="analysis-bar-fill" style="width: ${pct}%; background: #4B3F8F;"></div>
+            </div>
+            <span class="analysis-count">${r.count}</span>
+          </div>
+        `;
+      });
+      document.getElementById("delayRows").innerHTML = delayHtml;
+    }
+
+    // ----------------------------------------------------
+    // Render Team Board
+    // ----------------------------------------------------
+    function renderTeamBoard() {
+      let boardCols = document.getElementById("boardColumns");
+      let html = "";
+
+      STAGES.forEach((stageName, stageIdx) => {
+        let stageJobs = TAX11_JOBS.filter(j => j.stage === stageIdx);
+
+        html += `
+          <div class="board-col">
+            <div class="col-header">
+              <span>${stageName}</span>
+              <span style="color: #4A5668;">${stageJobs.length}</span>
+            </div>
+        `;
+
+        if (stageJobs.length === 0) {
+          html += `<div style="padding: 12px; font-size: 12px; color: #7F8C9E; text-align: center;">No active jobs</div>`;
+        } else {
+          stageJobs.forEach(job => {
+            let chipClass = job.status === 'On track' ? 'chip-ontrack' : (job.status === 'At risk' ? 'chip-atrisk' : 'chip-overdue');
+            html += `
+              <div class="job-card">
+                <span class="job-card-id">${job.id}</span>
+                <span class="job-card-client">${job.client}</span>
+                <span class="job-card-meta">${job.owner} · Day ${job.day}</span>
+                <span class="chip ${chipClass}">${job.status}</span>
+              </div>
+            `;
+          });
+        }
+
+        html += `</div>`;
+      });
+
+      boardCols.innerHTML = html;
+    }
+
+    // ----------------------------------------------------
+    // Tab Switching
+    // ----------------------------------------------------
+    function switchTab(tab) {
+      let dashView = document.getElementById("tabDashboard");
+      let teamView = document.getElementById("tabTeamBoard");
+      let btnDash = document.getElementById("navDash");
+      let btnTeam = document.getElementById("navTeam");
+
+      if (tab === 'dash') {
+        dashView.style.display = 'flex';
+        teamView.style.display = 'none';
+        btnDash.classList.add('active');
+        btnTeam.classList.remove('active');
+      } else {
+        dashView.style.display = 'none';
+        teamView.style.display = 'flex';
+        btnDash.classList.remove('active');
+        btnTeam.classList.add('active');
+        renderTeamBoard();
+      }
+    }
+
+    // ----------------------------------------------------
+    // Sign Out
+    // ----------------------------------------------------
+    function handleSignOut() {
+      sessionStorage.removeItem("yyc_current_user");
+      sessionStorage.removeItem("yyc_user_name");
+      sessionStorage.removeItem("yyc_user_role");
+      window.location.href = "login.html";
+    }
+
+    // ----------------------------------------------------
+    // Toast Notification & Excel Export
+    // ----------------------------------------------------
+    function showToast(msg) {
+      let box = document.getElementById("toastBox");
+      document.getElementById("toastMsg").textContent = msg;
+      box.style.display = "flex";
+      setTimeout(hideToast, 4000);
+    }
+
+    function hideToast() {
+      document.getElementById("toastBox").style.display = "none";
+    }
+
+    function exportDataExcel() {
+      showToast("Exporting all 8 teams control logs to Excel (XLSX)...");
+    }
+
+    // Initialize on load
+    document.addEventListener("DOMContentLoaded", function() {
+      initUser();
+      renderDashboard();
+    });
+  </script>
+</body>
+</html>
+
+</html>
