@@ -1,5 +1,3 @@
-# YYC-Project-A
-
 YYC Corporate Division
 
 Automate Job Control Log for Audit & Tax
