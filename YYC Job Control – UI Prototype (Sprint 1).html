@@ -68,58 +68,18 @@ document.addEventListener('DOMContentLoaded', async function() {
     const manifest = JSON.parse(manifestEl.textContent);
     let template = JSON.parse(templateEl.textContent);
 
-    // Nested page bundles (iframe targets). Each ships ONCE, in the ROOT
-    // document's manifest; frame srcs carry an about:blank#<uuid> marker
-    // instead of a substitutable uuid. Every document mints the blobs for
-    // its OWN frames — from local text at the root, or text obtained from
-    // its DIRECT parent over the relay protocol below — so each frame
-    // navigation stays same-origin with its initiator and a deduped page
-    // loads at any depth on any host, including a file:// download's
-    // opaque origins (where a blob minted by one document cannot be
-    // navigated to by another).
     const pageOrderEl = document.querySelector('script[type="__bundler/page_order"]');
     const pageOrder = pageOrderEl ? JSON.parse(pageOrderEl.textContent) : [];
     const pageSet = new Set(pageOrder);
     const pageTexts = {};
 
-    // ── Nested-page text protocol (parent-chain relay) ──
-    // Page bundles ship once, in the ROOT document's manifest. Every
-    // document mints the blobs for its OWN frames, obtaining page text
-    // through a strict parent-chain relay: a document only ever SENDS to
-    // its direct parent (which, for every document the publisher's own
-    // runtime minted, is another publisher document) and only ACCEPTS
-    // text from that direct parent; requests from below are honored only
-    // for the document's own child frames, and the ROOT never sends
-    // upward at all. That last rule is load-bearing: the artifact host's
-    // frame-ancestors allows claude.ai (and friends) to frame an
-    // artifact, so window.top can be a FOREIGN document — a top-addressed
-    // protocol would hand page uuids to that ancestor and accept forged
-    // "page text" from it, minting attacker HTML as an artifact-origin
-    // blob document. The chain never touches the ancestor: requests stop
-    // at the root, replies are origin-addressed per hop (never '*' when
-    // an origin exists), and both directions are origin-gated (on https
-    // a foreign sender's origin can never equal this document's; in
-    // opaque contexts — file:// — everything serializes as 'null', where
-    // an embedded EXTERNAL frame still fails the gate by carrying its
-    // own real origin, and a sandboxed child of such a frame is excluded
-    // by the own-child-frames check plus uuid unguessability). Shape is
-    // deny-by-default: one request form, one reply form, no error
-    // replies.
-    // window.origin is the SERIALIZED SECURITY origin ('null' in opaque
-    // contexts such as a sandboxed preview iframe) — location.origin is
-    // computed from the URL and stays 'https://…' even when the document
-    // is sandboxed, which would misgate every opaque chain.
+
     const OWN_TARGET = /^https?:[/][/]/.test(window.origin || '')
       ? window.origin
       : '*';
     function trustedOrigin(e) {
       if (e.origin === window.origin) return true; // https chains; opaque==opaque
-      // file:// trees: Chrome serializes the file document's origin as
-      // 'file://' while the blob: documents it mints serialize as 'null',
-      // so the two legitimate shapes can never string-match — accept the
-      // pair in both directions. https origins never serialize as either,
-      // and sender identity (own child frame / direct parent) is checked
-      // separately.
+
       return (
         (e.origin === 'null' &&
           (window.origin === 'file://' ||
@@ -127,10 +87,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         (/^file:/.test(e.origin) && window.origin === 'null')
       );
     }
-    // Non-empty only in the root document (nested bundles ship an empty
-    // island), so it doubles as the root marker: the root answers from
-    // local text and treats a miss as authoritative — never relaying to
-    // its (possibly foreign) parent.
+
     const isPageRoot = pageOrder.length > 0;
     const blobUrls = {};
     const resourceBlobs = {};
@@ -165,12 +122,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     window.addEventListener('message', function (e) {
       const d = e.data;
       if (!d || typeof d !== 'object' || !e.source) return;
-      // Origin gate first; the structural checks below (own-child-frames
-      // for requests, direct-parent + solicited-uuid for replies, the
-      // root's never-relay rule) are what hold in fully opaque chains
-      // where origin strings can't discriminate — a sandboxed root's
-      // FOREIGN wrapper still fails all three even though both serialize
-      // as real-vs-'null' rather than matching.
       if (!trustedOrigin(e)) return;
       if (typeof d.__bundler_need === 'string' && UUID_SHAPE.test(d.__bundler_need)) {
         // Requests are honored only for this document's own child frames.
@@ -187,9 +138,6 @@ document.addEventListener('DOMContentLoaded', async function() {
           if (waiting.indexOf(e.source) < 0) waiting.push(e.source);
           return;
         }
-        // Never-answered uuids would otherwise accumulate forever under a
-        // request spray; past the cap (far above any real page count) new
-        // relays are dropped rather than remembered.
         if (Object.keys(pendingRelays).length >= 128) return;
         pendingRelays[uuid] = [e.source];
         window.parent.postMessage({ __bundler_need: uuid }, OWN_TARGET);
@@ -198,12 +146,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         UUID_SHAPE.test(d.__bundler_page) &&
         typeof d.__bundler_text === 'string'
       ) {
-        // The shape test is load-bearing beyond tidiness: the solicited
-        // check below uses the in operator, which matches prototype keys
-        // ('__proto__', 'constructor') — an unshaped key would reach
-        // deliverPage and throw, painting the error banner.
-        // Text is accepted only from the direct parent — the document
-        // that minted this one.
         if (e.source !== window.parent || window.parent === window) return;
         if (!(d.__bundler_page in pendingFrames) && !(d.__bundler_page in pendingRelays)) return;
         deliverPage(d.__bundler_page, d.__bundler_text);
@@ -284,43 +226,20 @@ document.addEventListener('DOMContentLoaded', async function() {
       template = template.split(uuid).join(blobUrls[uuid]);
     }
 
-    // Strip integrity + crossorigin — blob URLs from a file:// document inherit
-    // a null origin, so crossorigin forces a CORS fetch that SRI then rejects.
-    // The manifest bytes are ours; SRI protects against CDN compromise, not this.
-    // appifacts: only on tags now pointing at OUR blob: URLs. A reference the
-    // bundler left live-fetched (an absolute x-import, a runtime dependency it
-    // could not embed, an authored external script) keeps the pin it was
-    // written with: that fetch is exactly what SRI protects. (A crossorigin
-    // on a parent whose child carries the blob — <video crossorigin><source>
-    // — is left alone too; the attribute is then the author's to drop.)
     template = template.replace(/<[a-z][^>]*>/gi, (tag) => /\s(?:src|href|srcset|poster|data|xlink:href)="blob:/i.test(tag) ? tag.replace(/\s+integrity="[^"]*"/gi, '').replace(/\s+crossorigin="[^"]*"/gi, '') : tag);
 
     const resourceScript = '<script>window.__resources = ' +
       JSON.stringify(resourceMap).replace(/<\//g, '<\\/') +
       ';</' + 'script>';
-    // Inject after <head> so the DOCTYPE stays first; prepending the script
-    // would push the parser into quirks mode. DOMParser always emits a <head>
-    // (synthesizing one if the source HTML omitted it) but may carry
-    // attributes through, so match the full opening tag. slice() rather than
-    // replace() keeps us clear of $-pattern substitution in resourceScript.
     const headOpen = template.match(/<head[^>]*>/i);
     if (headOpen) {
       const i = headOpen.index + headOpen[0].length;
       template = template.slice(0, i) + resourceScript + template.slice(i);
     }
 
-    // Parse the template and swap the root element. Scripts inserted via
-    // DOMParser/replaceWith are inert per spec — re-create each with
-    // createElement so they execute, awaiting onload for src scripts to
-    // preserve ordering (React before ReactDOM before Babel before text/babel).
     const doc = new DOMParser().parseFromString(template, 'text/html');
     document.documentElement.replaceWith(doc.documentElement);
 
-    // Resolve page-frame markers: mint this document's own blob for each
-    // framed page — from local text when this is the root, otherwise by
-    // asking the direct parent over the relay protocol above. An
-    // unanswered request leaves the frame on about:blank, the same
-    // degraded state as a refused embed.
     {
       const MARKER = /^about:blank#([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(#.*)?$/;
       const needed = [];
@@ -346,10 +265,6 @@ document.addEventListener('DOMContentLoaded', async function() {
       const s = document.createElement('script');
       for (const a of old.attributes) s.setAttribute(a.name, a.value);
       s.textContent = old.textContent;
-      // text/babel scripts with a src: read and inline. transformScriptTags
-      // does XHR against the src, but blob:null/ from a file:// origin is
-      // silently dropped. Inlining makes it a plain inline babel script,
-      // which transformScriptTags handles unconditionally.
       if ((s.type === 'text/babel' || s.type === 'text/jsx') && s.src) {
         const pre = resourceBlobs[s.src.split('#')[0]];
         s.textContent = pre ? await pre.text() : await (await fetch(s.src)).text();
