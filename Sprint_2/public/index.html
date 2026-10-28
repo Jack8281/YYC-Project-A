@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YYC Job Control | Sprint 2</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/public/app.css">
+</head>
+<body>
+  <section id="loginScreen" class="login-shell">
+    <div class="login-brand">
+      <div class="brand-mark">YYC</div>
+      <div><strong>YYC Job Control</strong><span>Audit &amp; Tax Operations</span></div>
+    </div>
+    <div class="login-card">
+      <div class="eyebrow">SPRINT 2 · WORKING PROTOTYPE</div>
+      <h1>Sign in to the demo</h1>
+      <p class="muted">Choose a fictitious account to inspect role-specific views and workflow access.</p>
+      <label for="demoUserSelect">Demo account</label>
+      <select id="demoUserSelect" class="control control-large" required>
+        <option value="">Loading demo accounts…</option>
+      </select>
+      <button id="signInButton" class="button button-primary button-full">Open workspace <span aria-hidden="true">→</span></button>
+      <div id="loginError" class="error-text" role="alert"></div>
+      <div class="data-note"><span class="note-icon">i</span><div><strong>Fictitious data only</strong><p>This is a local development prototype, not YYC production sign-in. Do not enter real client or staff data.</p></div></div>
+    </div>
+    <footer class="login-footer">Project 351 · INTI project team · Sprint 2 data foundation</footer>
+  </section>
+
+  <div id="appShell" class="app-shell hidden">
+    <aside class="sidebar">
+      <div class="brand-lockup"><div class="brand-mark">YYC</div><div><strong>YYC Job Control</strong><span>Audit &amp; Tax</span></div></div>
+      <div class="role-context"><span class="role-dot"></span><div><small>WORKSPACE VIEW</small><strong id="sidebarRole">Staff</strong><span id="sidebarTeam">Audit 1</span></div></div>
+      <nav id="sideNav" class="side-nav" aria-label="Main navigation"></nav>
+      <div class="sidebar-bottom"><div class="privacy-mini"><span>●</span><div><strong>Demo environment</strong><small>Fictitious records only</small></div></div><button id="logoutButton" class="nav-logout">↪ Sign out</button></div>
+    </aside>
+
+    <main class="main-area">
+      <header class="top-header">
+        <div><div class="breadcrumb">YYC CORPORATE DIVISION <span>/</span> <span id="currentSection">My Jobs</span></div><h1 id="pageTitle">My Jobs</h1><p id="pageSubtitle">Your assigned work, ordered by urgency.</p></div>
+        <div class="header-actions"><span class="env-pill"><i></i> Local prototype</span><div class="user-chip"><div id="userInitials" class="avatar">ST</div><div><strong id="headerUser">Demo user</strong><span id="headerUserRole">Staff</span></div></div></div>
+      </header>
+      <div id="toast" class="toast hidden" role="status"></div>
+      <section id="pageContent" class="page-content" aria-live="polite"></section>
+      <footer class="app-footer"><span>YYC Job Control · Sprint 2</span><span>Prototype data is fictitious · Detailed workflow durations remain provisional until confirmed by YYC.</span></footer>
+    </main>
+  </div>
+
+  <dialog id="createDialog" class="dialog">
+    <form id="createJobForm" class="dialog-form">
+      <div class="dialog-heading"><div><span class="eyebrow">NEW WORK</span><h2>Create a job</h2><p>Choose a client, service and dates. Team allocation is a manual director decision.</p></div><button type="button" class="icon-button" data-close-dialog="createDialog" aria-label="Close">×</button></div>
+      <div class="form-grid">
+        <div class="field field-full"><label for="clientSearch">Find client</label><input id="clientSearch" class="control" placeholder="Search client name or code…" autocomplete="off"><div id="clientSearchHint" class="field-hint">Search uses fictitious clients in the permitted portfolio.</div></div>
+        <div class="field field-full"><label for="clientId">Client</label><select id="clientId" class="control" required><option value="">Search for a client first</option></select></div>
+        <div class="field"><label for="serviceSelect">Service</label><select id="serviceSelect" class="control" required><option>Audit</option><option>Tax</option></select></div>
+        <div class="field"><label for="fyeDate">Financial year end (FYE)</label><input id="fyeDate" type="date" class="control" required></div>
+        <div class="field field-full"><label for="maDate">Management Accounts received</label><input id="maDate" type="date" class="control" required><div class="field-hint">Audit first-draft target: 45 days · Tax first-draft target: 65 days.</div></div>
+      </div>
+      <div id="createError" class="error-text"></div>
+      <div class="dialog-actions"><button type="button" class="button button-secondary" data-close-dialog="createDialog">Cancel</button><button type="submit" class="button button-primary">Create job</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="detailDialog" class="dialog detail-dialog"><div id="detailContent"></div></dialog>
+  <input id="restoreFile" type="file" accept="application/json,.json" class="visually-hidden">
+  <script src="/public/app.js" defer></script>
+</body>
+</html>
