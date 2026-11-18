@@ -1,0 +1,65 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function profile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function accountAllowed() {
+      return signedIn() && (
+        request.auth.token.email_verified == true ||
+        profile().allowUnverifiedTesting == true
+      );
+    }
+
+    function isWorker() {
+      return accountAllowed() && profile().role == "worker";
+    }
+
+    function isManager() {
+      return accountAllowed() && profile().role == "manager";
+    }
+
+    function isDirector() {
+      return accountAllowed() && (profile().role == "director" || profile().role == "management");
+    }
+
+    match /users/{userId} {
+      allow get: if signedIn() && (
+        (userId == request.auth.uid &&
+          (request.auth.token.email_verified == true || resource.data.allowUnverifiedTesting == true)) ||
+        isManager() || isDirector()
+      );
+      allow list: if (isManager() || isDirector()) && resource.data.role == "worker";
+      allow create, update, delete: if false;
+    }
+
+    match /jobs/{jobId} {
+      allow get, list: if isDirector() ||
+        isManager() ||
+        (isWorker() && resource.data.assignedUid == request.auth.uid);
+      allow create, update, delete: if false;
+
+      match /events/{eventId} {
+        allow get, list: if isDirector() || isManager() ||
+          (isWorker() &&
+            get(/databases/$(database)/documents/jobs/$(jobId)).data.assignedUid == request.auth.uid);
+        allow create, update, delete: if false;
+      }
+    }
+
+    match /clients/{clientId} {
+      allow get, list: if isDirector() ||
+        (isManager() && resource.data.team == profile().team);
+      allow create, update, delete: if false;
+    }
+
+    match /teamCounters/{teamId} {
+      allow read, write: if false;
+    }
+  }
+}

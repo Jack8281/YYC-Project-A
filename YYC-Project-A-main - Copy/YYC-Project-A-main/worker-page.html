@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YYC Job Control – My Jobs</title>
+  <link rel="stylesheet" href="jobs-dashboard.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="workspaceLoading" role="status">
+    <div class="workspace-loading-card">
+      <strong>Loading your workspace</strong>
+      <p>Connecting to your account and loading your role profile.</p>
+    </div>
+  </div>
+  <script>
+    window.setTimeout(() => {
+      if (document.body.classList.contains("auth-ready")) return;
+      const loading = document.getElementById("workspaceLoading");
+      if (loading) loading.innerHTML = '<div class="workspace-loading-card"><strong>Workspace is still waiting for Firebase</strong><p>Check that Firestore rules are deployed and this account can read its <code>users/{UID}</code> profile. For an unverified local test account, that profile needs <code>allowUnverifiedTesting: true</code>.</p><p><a href="login.html">Return to sign in</a></p></div>';
+    }, 8000);
+  </script>
+  <script type="module" src="jobs-dashboard.js?v=20261029-8"></script>
+</body>
+</html>
