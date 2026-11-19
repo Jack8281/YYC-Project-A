@@ -9,7 +9,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-functions.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import { auth, db, functions, isLocalDevelopment } from "./firebase-config.js?v=20261029-3";
+import { auth, db, functions, isLocalDevelopment, useFirebaseEmulators } from "./firebase-config.js?v=20261029-4";
 
 const TEAM_NAMES = ["Audit 1", "Audit 2", "Audit 11", "Audit 12", "Tax 1", "Tax 2", "Tax 11", "Tax 12"];
 const JOB_STEPS = [
@@ -37,6 +37,22 @@ let staff = [];
 let clients = [];
 let toastTimer;
 let unsubscribeJobs;
+
+function modeSuffix() {
+  if (useFirebaseEmulators) return "?emulator=true";
+  return new URLSearchParams(window.location.search).get("cloud") === "true"
+    ? "?cloud=true"
+    : "";
+}
+
+function loginUrl(error) {
+  const params = new URLSearchParams();
+  if (useFirebaseEmulators) params.set("emulator", "true");
+  else if (new URLSearchParams(window.location.search).get("cloud") === "true") params.set("cloud", "true");
+  if (error) params.set("error", error);
+  const queryString = params.toString();
+  return `login.html${queryString ? `?${queryString}` : ""}`;
+}
 
 function showMessage(message) {
   const toast = document.getElementById("toast");
@@ -799,7 +815,7 @@ document.getElementById("signOutButton").addEventListener("click", async () => {
   try {
     if (unsubscribeJobs) unsubscribeJobs();
     await signOut(auth);
-    window.location.replace("login.html");
+    window.location.replace(loginUrl());
   } catch (error) {
     showFailure("Could not sign out. Please check your connection and try again.", error);
   }
@@ -883,7 +899,7 @@ async function callAction(callable, payload, successMessage) {
 }
 
 function redirectToLogin(error) {
-  window.location.replace(`login.html${error ? `?error=${encodeURIComponent(error)}` : ""}`);
+  window.location.replace(loginUrl(error));
 }
 
 window.setTimeout(() => {
@@ -929,7 +945,7 @@ onAuthStateChanged(auth, async user => {
     profile.role = role;
     const requestedPage = window.location.pathname.split("/").pop();
     if (requestedPage !== ROLE_PAGES[role]) {
-      window.location.replace(ROLE_PAGES[role]);
+      window.location.replace(ROLE_PAGES[role] + modeSuffix());
       return;
     }
     if (role === "manager" && !TEAM_NAMES.includes(profile.team)) {
@@ -962,6 +978,10 @@ onAuthStateChanged(auth, async user => {
     renderJobs();
     watchJobs();
     document.body.classList.add("auth-ready");
+    // Mount the assistant after the authenticated dashboard becomes visible.
+    // The page HTML also initializes it on DOMContentLoaded; init() is guarded
+    // against duplicate mounts, so this recovers safely if that ran too early.
+    if (typeof window.YYCChat?.init === "function") window.YYCChat.init();
     void loadStaff();
     void loadClients();
   } catch (error) {
